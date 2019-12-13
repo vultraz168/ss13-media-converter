@@ -5,11 +5,7 @@ MIT license
 
 REQUIRES:
   sudo apt-get install -y sox libsox-fmt-all libav-tools
-<<<<<<< HEAD
   sudo -H pip install mutagen pyyaml
-=======
-  pip install mutagen pyyaml
->>>>>>> 4ca9bbac8ccbf336b22c6d79b6929187fa8a9339
 '''
 import glob
 import hashlib
@@ -29,11 +25,6 @@ from functools import reduce
 sys.path.append('lib/ryetalin')
 import ryetalin
 
-<<<<<<< HEAD
-=======
-OUTPUT_DIR=os.path.abspath(u'files-upl')
-OUTPUT_EXT=u'mp3' # WAS MP3
->>>>>>> 4ca9bbac8ccbf336b22c6d79b6929187fa8a9339
 
 OUTPUT_DIR = os.path.abspath(u'files-upl')
 OUTPUT_EXT = u'mp3'  # WAS MP3
@@ -227,8 +218,9 @@ def check_for_dead_files(infile, basedir=OUTPUT_DIR):
     if sys.version_info[0] < 3:
         if isinstance(infile, unicode):
             infile = infile.decode('utf-8')
-    if isinstance(infile, bytes):
-        infile = infile.decode('utf-8')
+    else:
+        if isinstance(infile, bytes):
+            infile = infile.decode('utf-8')
     title, ext = os.path.splitext(os.path.basename(infile))
     playlist = os.path.relpath(os.path.dirname(infile), u'./' + basedir)
     sourcefile = os.path.join(playlist, cleanFilename(title))
@@ -240,7 +232,7 @@ def check_md5s(infile):
     global md5s, deadfiles
 
     pathchunks = infile.split(os.sep)[-3:]
-    title, ext = os.path.splitext(os.path.basename(infile))
+    title, _ = os.path.splitext(os.path.basename(infile))
     md5 = pathchunks[0] + pathchunks[1] + title
     if md5 not in md5s:
         deadfiles += [infile]
@@ -249,9 +241,8 @@ def check_count(_):
     global FILECOUNT
     FILECOUNT+=1
 
+
 # Copy the file's tags and convert to id3v2
-
-
 def update_tags(origf, newf):
     orig = ryetalin.Open(origf)
     if orig is None:
@@ -299,7 +290,6 @@ def update_tags(origf, newf):
 
 
 class TimeExecution(object):
-
     def __init__(self, label):
         self.start_time = None
         self.label = label
@@ -309,7 +299,7 @@ class TimeExecution(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        logging.info('  Completed in {1}s - {0}'.format(self.label, secondsToStr(TIME_SOURCE() - self.start_time)))
+        logging.info('  Completed in %(diff)ds - %(label)s', {'label': self.label, 'diff': secondsToStr(TIME_SOURCE() - self.start_time)})
         return False
 
 
@@ -323,8 +313,9 @@ def check_converted(infile, basedir='tmp_files'):
     if sys.version_info[0] < 3:
         if isinstance(infile, unicode):
             infile = infile.decode('utf-8')
-    if isinstance(infile, bytes):
-        infile = infile.decode('utf-8')
+    else:
+        if isinstance(infile, bytes):
+            infile = infile.decode('utf-8')
     title, ext = os.path.splitext(os.path.basename(infile))
     playlist = os.path.relpath(os.path.dirname(infile), u'./' + basedir)
     sourcefile = os.path.join(playlist, cleanFilename(title))

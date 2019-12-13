@@ -5,7 +5,11 @@ MIT license
 
 REQUIRES:
   sudo apt-get install -y sox libsox-fmt-all libav-tools
+<<<<<<< HEAD
   sudo -H pip install mutagen pyyaml
+=======
+  pip install mutagen pyyaml
+>>>>>>> 4ca9bbac8ccbf336b22c6d79b6929187fa8a9339
 '''
 import glob
 import hashlib
@@ -25,6 +29,11 @@ from functools import reduce
 sys.path.append('lib/ryetalin')
 import ryetalin
 
+<<<<<<< HEAD
+=======
+OUTPUT_DIR=os.path.abspath(u'files-upl')
+OUTPUT_EXT=u'mp3' # WAS MP3
+>>>>>>> 4ca9bbac8ccbf336b22c6d79b6929187fa8a9339
 
 OUTPUT_DIR = os.path.abspath(u'files-upl')
 OUTPUT_EXT = u'mp3'  # WAS MP3

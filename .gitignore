@@ -1,6 +1,6 @@
 /files-upl
 /tmp_files
-#/source
+/source
 *.pyc
 
 grabmusic.sh

@@ -26,11 +26,11 @@ sys.path.append('lib/ryetalin')
 import ryetalin
 
 
-OUTPUT_DIR = os.path.abspath(u'files-upl')
-OUTPUT_EXT = u'mp3'  # WAS MP3
+OUTPUT_DIR = os.path.abspath('files-upl')
+OUTPUT_EXT = 'mp3'  # WAS MP3
 
-TIME_SOURCE = time.time  # time.clock on windows
-USE_FFMPEG = False
+TIME_SOURCE = time.clock if os.name == 'nt' else time.time  # time.clock on windows
+USE_FFMPEG = False # Changed by
 
 SOX_ARGS = []
 SOX_ARGS += u'silence 1 0.1 0.1% reverse silence 1 0.1 0.1% reverse'.split(u' ')  # Remove silence
@@ -69,13 +69,10 @@ cmds += [(
     u'{OUTFILE}')
 ]
 '''
-# Was originally going to use OGG.
+# Was originally going to use OGG, but they ended up being large
 #cmds += [('oggenc tmp/VOX-sox-word.wav -o '+oggfile,oggfile)]
 
-playlists = [
-    'rock', 'jazz', 'bar', 'endgame', 'shuttle', 'muzak', 'emagged', 'clockwork', 'thunderdome', 'delta', 'beach',
-    'lobby', 'xmas'
-]  # Keygen is too fucking big.
+PLAYLISTS = []
 
 sourcefiles = []
 deadfiles = []
@@ -89,7 +86,7 @@ revmd5s = {}
 FILECOUNT=0
 FILEPROGRESS=0
 
-source_dir = u'source'  # u'source_test'
+source_dir = 'source'  # u'source_test'
 
 
 def secondsToStr(t):
@@ -98,14 +95,10 @@ def secondsToStr(t):
                [(t * 1000,), 1000, 60, 60])
 
 # Try to clean up UTF8 (NEVER WORKS)
-
-
 def removeNonAscii(s):
     return u''.join(i for i in s if ord(i) < 128)
 
 # Remove ampersands, hashes, question marks, and exclamation marks.
-
-
 def cleanFilename(s):
     s = s.replace(u'&', u'and')
     nwfn = (i for i in s if i not in u"#?!")
@@ -113,13 +106,13 @@ def cleanFilename(s):
 
 
 def move(fromdir, todir, fromexts, toext, op, **op_args):
-    for root, dirs, files in os.walk(fromdir):
-        path = root.split(u'/')
+    for root, _, files in os.walk(fromdir):
+        #path = root.split('/')
         newroot = os.path.join(todir, root[len(fromdir) + 1:])
         for file in files:
             fromfile = os.path.join(root, file)
-            title, ext = os.path.splitext(os.path.basename(fromfile))
-            if ext.strip(u'.') not in fromexts:
+            _, ext = os.path.splitext(os.path.basename(fromfile))
+            if ext.strip('.') not in fromexts:
                 #logging.warn(u'Skipping {} ({})'.format(fromfile, ext))
                 continue
             if not os.path.isdir(newroot):
@@ -128,10 +121,10 @@ def move(fromdir, todir, fromexts, toext, op, **op_args):
 
 
 def check(wdir, exts, op, **kwargs):
-    for root, dirs, files in os.walk(wdir):
+    for root, _, files in os.walk(wdir):
         for file in files:
             fromfile = os.path.join(root, file)
-            title, ext = os.path.splitext(os.path.basename(fromfile))
+            _, ext = os.path.splitext(os.path.basename(fromfile))
             if len(exts) > 0 and ext.strip(u'.') not in exts:
                 #logging.warn(u'Skipping {} ({})'.format(fromfile, ext))
                 continue
@@ -160,7 +153,7 @@ def filename_md5(infile, newroot, args):
     global md5s, revmd5s, config
     md5 = md5_file(infile)
     playlist = args['playlist']
-    title, ext = os.path.splitext(os.path.basename(infile))
+    _, ext = os.path.splitext(os.path.basename(infile))
     a = md5[0]
     b = md5[1]
     subf = os.path.join(newroot, a, b)
@@ -190,13 +183,13 @@ def filename_md5(infile, newroot, args):
         #logging.warn(u'Skipping {} (exists)'.format(tofile))
         return
     shutil.copy(infile, tofile)
-    logging.info('{1} = {2}'.format(md5, tofile, infile))
+    logging.info('%s = %s', tofile, infile)
 
 
 def straight_copy(infile, newroot, args):
     sinfile = removeNonAscii(infile)
     if sinfile != infile:
-        logging.critical("File {} (stripped) has nonascii filename.".format(sinfile))
+        logging.critical("File %s (stripped) has nonascii filename.", sinfile)
         sys.exit()
     base = os.path.basename(infile)
     title, ext = os.path.splitext(base)
@@ -211,7 +204,7 @@ def straight_copy(infile, newroot, args):
 def check_for_dead_files(infile, basedir=OUTPUT_DIR):
     sinfile = removeNonAscii(infile)
     if sinfile != infile:
-        logging.critical("File {} (stripped) has nonascii filename.".format(sinfile))
+        logging.critical("File %s (stripped) has nonascii filename.", sinfile)
         sys.exit()
     global sourcefiles, deadfiles
 
@@ -221,8 +214,8 @@ def check_for_dead_files(infile, basedir=OUTPUT_DIR):
     else:
         if isinstance(infile, bytes):
             infile = infile.decode('utf-8')
-    title, ext = os.path.splitext(os.path.basename(infile))
-    playlist = os.path.relpath(os.path.dirname(infile), u'./' + basedir)
+    title, _ = os.path.splitext(os.path.basename(infile))
+    playlist = os.path.relpath(os.path.dirname(infile), './' + basedir)
     sourcefile = os.path.join(playlist, cleanFilename(title))
     if sourcefile not in sourcefiles:
         deadfiles += [infile]
@@ -299,7 +292,7 @@ class TimeExecution(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        logging.info('  Completed in %(diff)ds - %(label)s', {'label': self.label, 'diff': secondsToStr(TIME_SOURCE() - self.start_time)})
+        logging.info('  Completed in %(diff)ss - %(label)s', {'label': self.label, 'diff': secondsToStr(TIME_SOURCE() - self.start_time)})
         return False
 
 
@@ -438,8 +431,10 @@ def main():
         sys.exit(1)
 
     with open('config.yml', 'r') as f:
-        config = yaml.load(f)
+        config = yaml.safe_load(f)
         # print(repr(config))
+
+    PLAYLISTS = list(config['playlists'].keys())
 
     check(u'source',('m4a', 'wav', 'mp3', 'ogg', 'webm', 'oga'),check_count)
     move(source_dir,
@@ -453,7 +448,7 @@ def main():
     logging.info('Checking converted files...')
     check(u'tmp_files', (OUTPUT_EXT,), check_converted)
 
-    for playlist in playlists:
+    for playlist in PLAYLISTS:
         move(os.path.join('tmp_files', playlist), os.path.join(OUTPUT_DIR), [OUTPUT_EXT], OUTPUT_EXT, filename_md5, playlist=playlist)
     check(OUTPUT_DIR, ('m4a', 'wav', 'mp3', 'ogg', 'webm', 'oga'), check_md5s)
 

@@ -1,12 +1,27 @@
+# All available playlists.
 playlists:
-        # We want to include the jazz playlist in the bar mix.
-        bar:
-                include:
-                        playlists:
-                                - jazz
-                        tracks: []
-                        files:
-                                - "rock/Starcraft 2 Jukebox - Big Tuna - Jem's Song-_k5YVy2QabQ.mp3"
-                                - "rock/Starcraft 2 Jukebox - Whiteboy James and the Blues Express - Excuse Me For Scribblin'-muUQqtqU6GY.mp3"
-                                - "rock/Starcraft 2 Jukebox - Whiteboy James and the Blues Express - A Zerg, A Shotgun and You-WVRZAJTJKYs.mp3"
-                                - "rock/Starcraft 2 Jukebox - Bourbon Cowboys - Suspicious Minds-5RmM57wicb4.mp3"
+  rock: {}
+  jazz: {}
+  endgame: {}
+  shuttle: {}
+  muzak: {}
+  emagged: {}
+  clockwork: {}
+  thunderdome: {}
+  delta: {}
+  beach: {}
+  lobby-main: {}
+  lobby-snow: {}
+  malfdelta: {}
+  nukesquad: {}
+  # We want to include the jazz playlist in the bar mix.
+  bar:
+    include:
+      playlists:
+        - jazz
+      tracks: []
+      files:
+        - "rock/Starcraft 2 Jukebox - Big Tuna - Jem's Song-_k5YVy2QabQ.mp3"
+        - "rock/Starcraft 2 Jukebox - Whiteboy James and the Blues Express - Excuse Me For Scribblin'-muUQqtqU6GY.mp3"
+        - "rock/Starcraft 2 Jukebox - Whiteboy James and the Blues Express - A Zerg, A Shotgun and You-WVRZAJTJKYs.mp3"
+        - "rock/Starcraft 2 Jukebox - Bourbon Cowboys - Suspicious Minds-5RmM57wicb4.mp3"

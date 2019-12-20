@@ -4,3 +4,5 @@
 *.pyc
 
 grabmusic.sh
+
+.pre-commit-config.yaml

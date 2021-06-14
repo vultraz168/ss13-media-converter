@@ -1,6 +1,8 @@
-/files-upl
-/tmp_files
-/source
+/files-upl/
+/tmp_files/
+/source/
+/.venv/
+
 *.pyc
 
 grabmusic.sh

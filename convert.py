@@ -17,14 +17,16 @@ import subprocess
 import sys
 import time
 
-import yaml
-from buildtools import os_utils
+from ruamel.yaml import YAML
+from buildtools import os_utils, log
 from functools import reduce
 
 # Ryetalin is our shitty standardization library.
 sys.path.append('lib/ryetalin')
-import ryetalin
+import ryetalin #isort: skip
 
+# Set up yaml
+yaml = YAML(typ='rt')
 
 OUTPUT_DIR = os.path.abspath('files-upl')
 OUTPUT_EXT = 'mp3'  # WAS MP3
@@ -33,24 +35,24 @@ TIME_SOURCE = time.clock if os.name == 'nt' else time.time  # time.clock on wind
 USE_FFMPEG = False # Changed by
 
 SOX_ARGS = []
-SOX_ARGS += u'silence 1 0.1 0.1% reverse silence 1 0.1 0.1% reverse'.split(u' ')  # Remove silence
-SOX_ARGS += u'norm'.split(u' ')  # Normalize volume
-#SOX_ARGS += u'rate 48k'.split(u' ')  # downsample
+SOX_ARGS += 'silence 1 0.1 0.1% reverse silence 1 0.1 0.1% reverse'.split(' ')  # Remove silence
+SOX_ARGS += 'norm'.split(' ')  # Normalize volume
+#SOX_ARGS += 'rate 48k'.split(' ')  # downsample
 
 # This changes the music to a 441k MP3, which is great for intertubes and doesn't break WMP.
 cmds = [
     (
         'normalize, desilence',
         [
-            u'sox',
-            #u'-r',
-            #u'441k',  # Was 441k
-            u'{INFILE}',
-            #u'/tmp/sox-out.wav' #
-            u'{OUTFILE}'
+            'sox',
+            #'-r',
+            #'441k',  # Was 441k
+            '{INFILE}',
+            #'/tmp/sox-out.wav' #
+            '{OUTFILE}'
         ] + SOX_ARGS,
-        # u'/tmp/sox-out.wav')
-        u'{OUTFILE}')
+        # '/tmp/sox-out.wav')
+        '{OUTFILE}')
 ]
 '''
 cmds += [(
@@ -66,7 +68,7 @@ cmds += [(
     '-y',
     #'-strict','experimental',
     '{OUTFILE}'],
-    u'{OUTFILE}')
+    '{OUTFILE}')
 ]
 '''
 # Was originally going to use OGG, but they ended up being large
@@ -86,7 +88,7 @@ revmd5s = {}
 FILECOUNT=0
 FILEPROGRESS=0
 
-source_dir = 'source'  # u'source_test'
+source_dir = 'source'  # 'source_test'
 
 
 def secondsToStr(t):
@@ -96,13 +98,13 @@ def secondsToStr(t):
 
 # Try to clean up UTF8 (NEVER WORKS)
 def removeNonAscii(s):
-    return u''.join(i for i in s if ord(i) < 128)
+    return ''.join(i for i in s if ord(i) < 128)
 
 # Remove ampersands, hashes, question marks, and exclamation marks.
 def cleanFilename(s):
-    s = s.replace(u'&', u'and')
+    s = s.replace('&', 'and')
     nwfn = (i for i in s if i not in u"#?!")
-    return u''.join(nwfn)
+    return ''.join(nwfn)
 
 
 def move(fromdir, todir, fromexts, toext, op, **op_args):
@@ -113,7 +115,7 @@ def move(fromdir, todir, fromexts, toext, op, **op_args):
             fromfile = os.path.join(root, file)
             _, ext = os.path.splitext(os.path.basename(fromfile))
             if ext.strip('.') not in fromexts:
-                #logging.warn(u'Skipping {} ({})'.format(fromfile, ext))
+                #logging.warning('Skipping {} ({})'.format(fromfile, ext))
                 continue
             if not os.path.isdir(newroot):
                 os.makedirs(newroot)
@@ -125,8 +127,8 @@ def check(wdir, exts, op, **kwargs):
         for file in files:
             fromfile = os.path.join(root, file)
             _, ext = os.path.splitext(os.path.basename(fromfile))
-            if len(exts) > 0 and ext.strip(u'.') not in exts:
-                #logging.warn(u'Skipping {} ({})'.format(fromfile, ext))
+            if len(exts) > 0 and ext.strip('.') not in exts:
+                #logging.warning('Skipping {} ({})'.format(fromfile, ext))
                 continue
             op(fromfile, **kwargs)
 
@@ -180,7 +182,7 @@ def filename_md5(infile, newroot, args):
         fileRegistry[md5]['playlists'] += [playlist]
 
     if os.path.isfile(tofile):
-        #logging.warn(u'Skipping {} (exists)'.format(tofile))
+        #logging.warning('Skipping {} (exists)'.format(tofile))
         return
     shutil.copy(infile, tofile)
     logging.info('%s = %s', tofile, infile)
@@ -196,7 +198,7 @@ def straight_copy(infile, newroot, args):
     tofile = os.path.join(newroot, cleanFilename(title) + ext)
     if os.path.isfile(tofile):
         if md5_file(infile) == md5_file(tofile):
-            #logging.warn(u'Skipping {} (exists)'.format(tofile))
+            #logging.warning('Skipping {} (exists)'.format(tofile))
             return
     shutil.copy(infile, tofile)
 
@@ -239,16 +241,16 @@ def check_count(_):
 def update_tags(origf, newf):
     orig = ryetalin.Open(origf)
     if orig is None:
-        logging.critical(u'Unable to open {}!'.format(origf))
+        logging.critical('Unable to open {}!'.format(origf))
         sys.exit(1)
 
     new = ryetalin.Open(newf)
     if new is None:
-        logging.critical(u'Unable to open {}!'.format(newf))
+        logging.critical('Unable to open {}!'.format(newf))
         sys.exit()
 
     if 'artist' not in orig and 'album' not in orig and 'title' not in orig:
-        logging.warn(u'Tags not set on: {0}'.format(origf))
+        logging.warning('Tags not set on: {0}'.format(origf))
         # sys.exit(1)
 
     # you can iterate over the tag names
@@ -263,7 +265,7 @@ def update_tags(origf, newf):
             #logging.info("Skipping {0} (invalid)",tag_name)
             continue
         orig_val = orig.tags[tag_name]
-        if orig_val in (u'0', u'', 0):
+        if orig_val in ('0', '', 0):
             continue
         if tag_name not in new.tags or new.tags[tag_name] != orig.tags[tag_name]:
             new.tags[tag_name] = orig.tags[tag_name]
@@ -276,7 +278,7 @@ def update_tags(origf, newf):
     if 'artist' not in new and 'album' not in new:
         warnings += ['artist OR album']
     if len(warnings) > 0:
-        logging.warn(u'Missing tags in {}: {}'.format(origf, ', '.join(warnings)))
+        logging.warning('Missing tags in {}: {}'.format(origf, ', '.join(warnings)))
     if len(changed) > 0:
         new.save()
         logging.info('Updated tags in {}: {}'.format(newf, ', '.join(changed)))
@@ -310,7 +312,7 @@ def check_converted(infile, basedir='tmp_files'):
         if isinstance(infile, bytes):
             infile = infile.decode('utf-8')
     title, ext = os.path.splitext(os.path.basename(infile))
-    playlist = os.path.relpath(os.path.dirname(infile), u'./' + basedir)
+    playlist = os.path.relpath(os.path.dirname(infile), './' + basedir)
     sourcefile = os.path.join(playlist, cleanFilename(title))
     if sourcefile not in sourcefiles:
         if os.path.isfile(infile):
@@ -326,7 +328,7 @@ def convert_to_mp3(infile, newroot, args):
     playlist = os.path.relpath(os.path.dirname(infile), './' + source_dir)
     sfEntry = os.path.join(playlist, cleanFilename(title))
     sourcefiles += [sfEntry]
-    outfile = os.path.join(newroot, u'{0}{1}'.format(cleanFilename(title), u'.' + OUTPUT_EXT))
+    outfile = os.path.join(newroot, '{0}{1}'.format(cleanFilename(title), '.' + OUTPUT_EXT))
     outdir = os.path.dirname(outfile)
     pct=(float(len(sourcefiles))/float(FILECOUNT))*100
 
@@ -335,54 +337,54 @@ def convert_to_mp3(infile, newroot, args):
         os.makedirs(outdir)
 
     if os.path.isfile(outfile):
-        #logging.warn(u'Skipping {} (exists)'.format(outfile))
+        #logging.warning('Skipping {} (exists)'.format(outfile))
         if newroot not in skip_tagging:
             update_tags(origfile, outfile)
         return
     logging.info("[%d%%] Converting %s... (%d/%d)",pct,origfile,len(sourcefiles),FILECOUNT)
 
     start = 0
-    if ext in (u'.m4a', u'.webm', u'.ogg'):
+    if ext in ('.m4a', '.webm', '.ogg'):
         newfrom = '/tmp/temp.wav'
         with TimeExecution('decode'):
             if not USE_FFMPEG:
-                os_utils.cmd([u'avconv', u'-y', u'-vn', u'-i', infile, newfrom], echo=False, critical=True, show_output=False)
+                os_utils.cmd(['avconv', '-y', '-vn', '-i', infile, newfrom], echo=False, critical=True, show_output=False)
             else:
                 # ffmpeg -i input.wav -codec:a libmp3lame -qscale:a 2 output.mp3
-                os_utils.cmd([u'ffmpeg', u'-i', infile, u'-maxrate:a', u'441K', u'-vn', u'-y', newfrom], echo=False, critical=True, show_output=False)
+                os_utils.cmd(['ffmpeg', '-i', infile, '-maxrate:a', '441K', '-vn', '-y', newfrom], echo=False, critical=True, show_output=False)
 
         infile = newfrom
     for command_spec in cmds:
         (step_name, command, cfn) = command_spec
         newcmd = []
         for chunk in command:
-            newcmd += [chunk.replace(u'{INFILE}', infile).replace(u'{OUTFILE}', outfile)]
-        cfn = cfn.replace(u'{INFILE}', infile).replace(u'{OUTFILE}', outfile)
+            newcmd += [chunk.replace('{INFILE}', infile).replace('{OUTFILE}', outfile)]
+        cfn = cfn.replace('{INFILE}', infile).replace('{OUTFILE}', outfile)
         with TimeExecution(step_name):
             if not os_utils.cmd(newcmd, echo=False, critical=True, show_output=True):
-                logging.error(u"Command '{}' failed!".format(u' '.join(newcmd)))
+                logging.error(u"Command '{}' failed!".format(' '.join(newcmd)))
                 if os.path.isfile(cfn):
-                    logging.warn('Removed {0}.'.format(cfn))
+                    logging.warning('Removed {0}.'.format(cfn))
                     os.remove(cfn)
                 sys.exit(1)
         if not os.path.isfile(cfn):
-            logging.error(u"File '{0}' doesn't exist, command '{1}' probably failed!".format(cfn, u' '.join(newcmd)))
+            logging.error(u"File '{0}' doesn't exist, command '{1}' probably failed!".format(cfn, ' '.join(newcmd)))
             sys.exit(1)
     if newroot not in skip_tagging:
         update_tags(origfile, outfile)
-    #logging.info(u'Created {0}'.format(outfile))
+    #logging.info('Created {0}'.format(outfile))
 
 
 def cmd(command, echo=False):
     if echo:
-        logging.info(u'>>> ' + repr(command))
+        logging.info('>>> ' + repr(command))
     output = ''
     try:
         # if subprocess.call(command,shell=True) != 0:
         output = subprocess.check_output(command, shell=False, stderr=subprocess.STDOUT)
         return True
     except subprocess.CalledProcessError as e:
-        logging.error(u"$ " + u' '.join(command))
+        logging.error(u"$ " + ' '.join(command))
         logging.error(e.output)
         logging.error('RETURN CODE: {0}'.format(e.returncode))
         return False
@@ -402,16 +404,31 @@ def main():
     global USE_FFMPEG
 
     argp = argparse.ArgumentParser()
-    argp.add_argument('--use-avconv', dest='use_ffmpeg', action='store_false', default=True, help='Use ffmpeg instead of avconv for decoding m4a.  May work better on Debian.')
+    argp.add_argument('--use-avconv', dest='use_avconv', action='store_true', default=False, help='Use avconv for converting audio.  May work better on Debian.')
+    argp.add_argument('--use-ffmpeg', dest='use_ffmpeg', action='store_true', default=False, help='Use ffmpeg for converting audio.')
 
     args = argp.parse_args()
 
     logging.basicConfig(format='%(asctime)s [%(levelname)-8s]: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
 
-    USE_FFMPEG=False
+    USE_FFMPEG=None
     if args.use_ffmpeg:
-        logging.info('--use-ffmpeg is set.')
+        logging.info('--use-ffmpeg is set, using ffmpeg.')
         USE_FFMPEG = True
+    elif args.use_avconv:
+        logging.info('--use-avconv is set, using avconv.')
+        USE_FFMPEG = False
+    else:
+        with log.info('Autodetecting conversion software (neither --use-ffmpeg nor --use-avconv are set)...'):
+            ffmpeg_path = os_utils.which('ffmpeg')
+            if ffmpeg_path is not None:
+                log.info('We\'ll use ffmpeg.')
+                USE_FFMPEG = True
+            else:
+                avconv_path = os_utils.which('avconv')
+                if avconv_path is not None:
+                    log.info('We\'ll use avconv.')
+                    USE_FFMPEG = False
 
     os_utils.assertWhich('sox')
     output = ''
@@ -431,14 +448,14 @@ def main():
         sys.exit(1)
 
     with open('config.yml', 'r') as f:
-        config = yaml.safe_load(f)
+        config = yaml.load(f)
         # print(repr(config))
 
     PLAYLISTS = list(config['playlists'].keys())
 
-    check(u'source',('m4a', 'wav', 'mp3', 'ogg', 'webm', 'oga'),check_count)
+    check('source',('m4a', 'wav', 'mp3', 'ogg', 'webm', 'oga'),check_count)
     move(source_dir,
-         u'tmp_files',
+         'tmp_files',
          ('m4a', 'wav', 'mp3', 'ogg', 'webm', 'oga'),
          OUTPUT_EXT,
          convert_to_mp3,
@@ -446,7 +463,7 @@ def main():
          )
 
     logging.info('Checking converted files...')
-    check(u'tmp_files', (OUTPUT_EXT,), check_converted)
+    check('tmp_files', (OUTPUT_EXT,), check_converted)
 
     for playlist in PLAYLISTS:
         move(os.path.join('tmp_files', playlist), os.path.join(OUTPUT_DIR), [OUTPUT_EXT], OUTPUT_EXT, filename_md5, playlist=playlist)
@@ -454,10 +471,10 @@ def main():
 
     for deadfile in deadfiles:
         if os.path.isfile(deadfile):
-            logging.warn(u'Removing ' + deadfile + u' (outdated)')
+            logging.warning(f'Removing {deadfile} (outdated)')
             os.remove(deadfile)
         if os.path.isfile(deadfile):
-            logging.critical(u'Failed to remove ' + deadfile + u'!')
+            logging.critical('Failed to remove {deadfile}!')
     del_dirs(OUTPUT_DIR)
 
     for plID, plConfig in config['playlists'].items():
@@ -473,7 +490,7 @@ def main():
                             fileRegistry[md5]['playlists'] += [plID]
                             numIncluded += 1
                         else:
-                            logging.warn('Playlist %s trying to include %s, when it already has it.', plID, nf)
+                            logging.warning('Playlist %s trying to include %s, when it already has it.', plID, nf)
             if 'playlists' in plConfig['include']:
                 playlistsWanted = plConfig['include']['playlists']
                 if len(playlistsWanted) > 0:

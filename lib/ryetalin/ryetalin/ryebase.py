@@ -1,3 +1,4 @@
+from typing import Dict
 import mutagen
 import logging
 from mutagen.easyid3 import EasyID3
@@ -13,11 +14,10 @@ TagTypes = {
 }
 
 
-class RyeBase(object):
+class RyeBase:
+    # mutagen => rye
+    TRANSLATIONS: Dict[str, str] = {}
     def __init__(self, filename, mutagenf):
-        # mutagen => rye
-        self.translation = {}
-
         self.filename = filename
 
         #: The actual Mutagen tag handler.
@@ -40,12 +40,14 @@ class RyeBase(object):
                 tag_value = self.mutagen.tags[tag_name]
             if isinstance(tag_value, (tuple, list)):
                 tag_value = tag_value[0]
-            if tag_value in (u'0', u''):
+            if tag_value in ('0', ''):
                 continue
             tk = self.translateKey(tag_name)
             if tk is None:
                 #logging.warn('Unhandled key {0}'.format(repr(tag_name)))
                 continue
+            #if tk in ('tracknumber',):
+            #    tag_value = int(tag_value)
             self.tags[tk] = tag_value
             #logging.info(' {0} = {1}'.format(tk,repr(tag_value)))
 
@@ -53,10 +55,10 @@ class RyeBase(object):
         return self.mutagen.info.length
 
     def translateKey(self, key):
-        return self.translation.get(key, None)
+        return self.TRANSLATIONS.get(key, None)
 
     def detranslateKey(self, key):
-        for k, v in self.translation.items():
+        for k, v in self.TRANSLATIONS.items():
             if v == key:
                 return k
         return None
@@ -82,13 +84,13 @@ class RyeBase(object):
 
 
 class RyeGeneric(RyeBase):
-
+    TRANSLATIONS = {
+        'artist': 'artist',
+        'album': 'album',
+        'title': 'title',
+        'albumartist': 'albumartist',
+        'tracknumber': 'tracknumber'
+    }
     def __init__(self, filename):
-        RyeBase.__init__(self, filename, mutagen.File(filename, easy=True))
-        self.translation = {
-            'artist': 'artist',
-            'album': 'album',
-            'title': 'title',
-            'albumartist': 'albumartist'
-        }
+        super().__init__(filename, mutagen.File(filename, easy=True))
         self.load()

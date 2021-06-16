@@ -3,14 +3,13 @@ from .ryebase import RyeBase
 
 
 class RyeVorbis(RyeBase):
+    TRANSLATIONS = {
+        'ALBUM': 'album',
+        'TITLE': 'title',
+        'ARTIST': 'artist',
+        'ALBUMARTIST': 'albumartist',
+        'TRACKNUMBER': 'tracknumber'
+    }
     def __init__(self, filename):
-        RyeBase.__init__(self, filename, mutagen.File(filename))
-
-        self.translation = {
-            u'ALBUM': 'album',
-            u'TITLE': 'title',
-            u'ARTIST': 'artist',
-            u'ALBUMARTIST': 'albumartist'
-        }
-
+        super().__init__(filename, mutagen.File(filename))
         self.load()

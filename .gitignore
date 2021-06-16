@@ -8,3 +8,5 @@
 grabmusic.sh
 
 .pre-commit-config.yaml
+
+vnm.state

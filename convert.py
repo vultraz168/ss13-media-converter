@@ -171,7 +171,7 @@ def filename_md5(infile, newroot, args):
 
     if md5 not in fileRegistry:
         if meta.tags is not None:
-            for tagName in ['title', 'album', 'artist']:
+            for tagName in ['title', 'album', 'artist', 'tracknumber']:
                 if tagName in meta.tags:
                     regEntry[tagName] = meta.tags[tagName]
         regEntry['playtime_seconds'] = str(meta.getLength())
@@ -249,7 +249,7 @@ def update_tags(origf, newf):
         logging.critical('Unable to open {}!'.format(newf))
         sys.exit()
 
-    if 'artist' not in orig and 'album' not in orig and 'title' not in orig:
+    if 'artist' not in orig and 'album' not in orig and 'title' not in orig and 'tracknumber' not in orig:
         logging.warning('Tags not set on: {0}'.format(origf))
         # sys.exit(1)
 
@@ -261,7 +261,7 @@ def update_tags(origf, newf):
         numtags += 1
         if 'albumartist' == tag_name:
             tag_name = 'artist'
-        if tag_name not in ('artist', 'title', 'album'):
+        if tag_name not in ('artist', 'title', 'album', 'tracknumber'):
             #logging.info("Skipping {0} (invalid)",tag_name)
             continue
         orig_val = orig.tags[tag_name]
@@ -275,6 +275,8 @@ def update_tags(origf, newf):
     warnings = []
     if 'title' not in new:
         warnings += ['title']
+    if 'tracknumber' not in new:
+        warnings += ['tracknumber']
     if 'artist' not in new and 'album' not in new:
         warnings += ['artist OR album']
     if len(warnings) > 0:

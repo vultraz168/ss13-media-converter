@@ -31,7 +31,7 @@ yaml = YAML(typ='rt')
 OUTPUT_DIR = os.path.abspath('files-upl')
 OUTPUT_EXT = 'mp3'  # WAS MP3
 
-TIME_SOURCE = time.process_time()
+TIME_SOURCE = time.process_time
 USE_FFMPEG = False # Changed by
 
 SOX_ARGS = []

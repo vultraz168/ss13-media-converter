@@ -10,6 +10,8 @@ class RyeVorbis(RyeBase):
         'ALBUMARTIST': 'albumartist',
         'TRACKNUMBER': 'tracknumber'
     }
+    def translateKey(self, key):
+        return super().translateKey(key.upper())
     def __init__(self, filename):
         super().__init__(filename, mutagen.File(filename))
         self.load()

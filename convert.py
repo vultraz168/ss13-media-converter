@@ -347,7 +347,7 @@ def convert_to_mp3(infile, newroot, args):
 
     start = 0
     if ext in ('.m4a', '.webm', '.ogg'):
-        newfrom = '/tmp/temp.wav'
+        newfrom = './temp.wav'
         with TimeExecution('decode'):
             if not USE_FFMPEG:
                 os_utils.cmd(['avconv', '-y', '-vn', '-i', infile, newfrom], echo=False, critical=True, show_output=False)
